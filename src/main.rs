@@ -1,4 +1,5 @@
 use std::process::exit;
+use std::fs::File;
 use std::process::Command;
 use std::{
     io::{prelude::*, BufReader},
@@ -6,8 +7,11 @@ use std::{
 };
 
 fn main() {
+    let mut file = File::open("./repo.txt").unwrap();
+    let mut data = vec![];
+    file.read_to_end(&mut data).unwrap();
     let mut state = State {
-        repo: "/".to_string(),
+        repo: String::from_utf8(data).unwrap(),
     };
 
     let listener = match TcpListener::bind("0.0.0.0:6969") {
@@ -104,6 +108,8 @@ fn process_command(command: &str, state: &mut State) -> (String, String) {
                     },
                 };
                 state.repo = path.to_string();
+                let mut file = File::create("./repo.txt").unwrap();
+                file.write_all(state.repo.as_bytes()).unwrap();
             },
             _ => {
                 return (OK.to_string(), "Unknown command".to_string());
